@@ -4,6 +4,7 @@ import Dash from './components/Dash';
 import Header from './components/Header';
 import { useState, useEffect } from 'react';
 import Country from './components/Country';
+import User from './components/User';
 
 function App() {
 
@@ -11,17 +12,12 @@ function App() {
   const [countries, setCountries] = useState([]);
   const [search, setSearch] = useState('');
   const [continent, setContinent] = useState('');
+  const [error, setError] = useState(null);
 
-  //UPDATING THE SEARCH TO FIND COUNTRIES
+  //UPDATING THE SEARCH INPUT VALUE
   const updateSearch = (e) => {
     setSearch(e.target.value);
     console.log(search)
-  }
-
-  //FILTERING BY REGION
-  const selected = (e) => {
-    setContinent(e.target.value);
-    console.log(continent)
   }
 
   useEffect(()=>{
@@ -31,29 +27,45 @@ function App() {
 
   //FETCHING THE DATA FROM THE SOURCE
   const getCountries = async () => {
-    const response = await fetch('https://restcountries.com/v3.1/all');
-    const data = await response.json();
-    setCountries(data);
-    console.log(data)
-    console.log(data[22].population.toString().length)
-    console.log(data[22].continents[0])
+
+    try{
+      const response = await fetch('https://restcountries.com/v3.1/all');
+
+      if(!response.ok){
+        throw Error('Could not Fetch the Data for that Resource ....');
+      }
+      const data = await response.json();
+      setCountries(data);
+      setError(null)
+      console.log(data)
+
+//ERROR HANDLING
+    } catch (err){
+      setError(err.message)
+      console.log(err.message)
+    }
   }
 
   return (
     <div className="App">
+      <User/>
       <Dash/>
       <div className="main">
+        <div>
+          <h2>My List</h2>
+        </div>
 
         <Header 
         search = {search}
         updatesearch = {updateSearch}
-        selected = {selected}/>
+        />
 
+        {error && <div style={{color:'red', fontSize:'18px', marginTop:'2rem'}}>{error}</div>}
 
         <div className="grido">
           {countries.filter((val)=> {
             if(search==''){
-              return val;
+              return;
             }else if(val.name.common.toLowerCase().includes(search.toLocaleLowerCase())){
               return val;
             }
